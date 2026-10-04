@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Find Min & Max – Divide and Conquer</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fdf8f2;--card:#fff;--ink:#3a3340;--muted:#9a91a3;--line:#f0e6dc;
+  --lav:#e6defa;--lav-d:#7b62cf;--mint:#d3f1e1;--mint-d:#2f8a66;--sun:#fff0bd;--sun-d:#b98a10;
+  --min:#7fd0d8;--min-d:#1f8590;--max:#ff9d8a;--max-d:#c4482f;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1a24;--card:#28242f;--ink:#f1ecf5;--muted:#a79fb2;--line:#3b3545;--lav:#3a3260;--mint:#1f3a30;--sun:#4a3e1c}}
+:root[data-theme="dark"]{--bg:#1d1a24;--card:#28242f;--ink:#f1ecf5;--muted:#a79fb2;--line:#3b3545;--lav:#3a3260;--mint:#1f3a30;--sun:#4a3e1c}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:'Quicksand',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;line-height:1.45}
+.wrap{max-width:1120px;margin:0 auto;padding:18px 16px 44px}
+.hero{position:relative;overflow:hidden;border-radius:30px;padding:26px 28px 56px;background:linear-gradient(120deg,#ffe3d6,#fff0bd 50%,#d3f1e1);color:#3a3340}
+.hero h1{margin:0;font-size:clamp(26px,5vw,40px);font-weight:700}.hero p{margin:4px 0 0;font-weight:600;opacity:.75}
+.hero svg{position:absolute;left:0;right:0;bottom:-2px;width:100%;height:46px}
+.bar{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:12px 14px;margin-top:14px;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+input,select{font:inherit;font-size:16px;font-weight:600;padding:10px 14px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);outline:none}
+input{flex:1;min-width:200px}input:focus{border-color:var(--lav-d)}
+button{font:inherit;font-weight:700;border:0;border-radius:14px;padding:10px 16px;cursor:pointer;background:var(--lav);color:var(--lav-d);transition:transform .12s,filter .2s}
+button:hover:not(:disabled){filter:brightness(.96)}button:active:not(:disabled){transform:scale(.95)}button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--min);outline-offset:2px}
+.pri{background:var(--lav-d);color:#fff}.go{background:var(--mint);color:var(--mint-d)}.stop{background:#ffd9d4;color:#b3392a}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.chip{flex:1;min-width:120px;text-align:center;font-weight:700;font-size:13px;padding:8px 10px;border-radius:14px;background:var(--card);border:2px solid var(--line);color:var(--muted);transition:all .3s}
+.chip b{display:block;font-size:11px;letter-spacing:.5px}
+.chip.on{background:var(--lav-d);border-color:var(--lav-d);color:#fff;transform:translateY(-3px);box-shadow:0 6px 14px rgba(123,98,207,.28)}
+.say{margin-top:14px;background:var(--sun);color:var(--ink);border-radius:22px;padding:14px 20px;font-weight:700;font-size:clamp(16px,2.6vw,20px);min-height:84px;display:flex;align-items:center;justify-content:center;text-align:center}
+.say.pop{animation:pop .45s cubic-bezier(.3,1.4,.5,1)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.stat{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:10px;text-align:center;color:var(--muted);font-weight:700;font-size:13px}
+.stat b{display:block;font-size:26px;color:var(--ink)}
+.grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr);gap:14px;margin-top:14px;align-items:start}
+.card{background:var(--card);border:2px solid var(--line);border-radius:26px;padding:16px}
+.card h2{margin:0 0 10px;font-size:18px;font-weight:700}
+.side{position:sticky;top:10px;display:flex;flex-direction:column;gap:14px}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+
+.terrain{display:flex;align-items:flex-end;justify-content:center;gap:clamp(3px,1vw,10px);height:250px;padding-top:30px}
+.col1{flex:1;max-width:66px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative}
+.col1.cut{margin-right:clamp(10px,3vw,26px)}
+.col1.cut::after{content:"";position:absolute;right:calc(-1*clamp(10px,3vw,26px)/2 - 1px);top:6px;bottom:0;border-right:3px dashed var(--lav-d);opacity:.6}
+.val{font-weight:700;font-size:clamp(13px,2.4vw,18px);margin-bottom:3px;position:relative}
+.hill{width:100%;border-radius:14px 14px 4px 4px;background:linear-gradient(#cdbff5,#e6defa);transition:height .3s,opacity .3s,background .3s}
+.col1.dim .hill{opacity:.28}.col1.dim .val{opacity:.45}
+.col1.cmp .hill{background:linear-gradient(#ffd96b,#fff0bd);box-shadow:0 0 0 3px #f2c230,0 0 18px #f2c230}
+.col1.cmp .val{animation:pop .5s}
+.col1.min .hill{background:linear-gradient(#5cc3cd,#aee6ea)}.col1.max .hill{background:linear-gradient(#ff8a73,#ffc6bb)}
+.tg{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;padding:1px 8px;border-radius:99px;white-space:nowrap}
+.tg.min{background:var(--min);color:#0d4a52}.tg.max{background:var(--max);color:#6e1d0d}
+.idx{font-size:12px;color:var(--muted);margin-top:5px;font-weight:600}
+.treewrap{overflow-x:auto}.treewrap svg{display:block;margin:0 auto}
+.nd rect{fill:var(--lav);stroke:var(--lav-d);stroke-width:2;transition:fill .3s}
+.nd.done rect{fill:var(--mint);stroke:var(--mint-d)}.nd.path rect{stroke-width:3.5}
+.nd.act rect{fill:var(--sun);stroke:#f2b400;stroke-width:4;filter:drop-shadow(0 0 8px #f2c230)}
+.nd text{font-family:'Quicksand',Arial,sans-serif;font-weight:700;text-anchor:middle;fill:var(--ink)}
+.nd .r1{font-size:12px;fill:var(--muted)}.nd .r2{font-size:15px}.tmin{fill:var(--min-d)}.tmax{fill:var(--max-d)}
+.edge{fill:none;stroke:var(--line);stroke-width:3}.edge.on{stroke:var(--lav-d)}
+.nd{animation:pop .5s cubic-bezier(.3,1.4,.5,1);transform-box:fill-box;transform-origin:center}
+.code{background:#2f2a3d;color:#ece6f7;border-radius:16px;padding:10px 0;font-family:'Fira Code',Consolas,monospace;font-size:12.5px;overflow-x:auto}
+.ln{white-space:pre;padding:1px 14px;border-left:4px solid transparent}.ln.on{background:#4a4268;border-left-color:#ffd96b}
+.k{color:#ffa7c4}.n{color:#ffd29a}.cm{color:#9f97b3}
+.stack{display:flex;flex-direction:column-reverse;gap:6px;min-height:50px}
+.fr{font-family:'Fira Code',Consolas,monospace;font-size:12.5px;font-weight:500;background:var(--lav);border:2px solid var(--lav-d);border-radius:12px;padding:5px 10px;color:var(--ink)}
+.fr.top{background:var(--sun);border-color:#f2b400}.fr.new{animation:pop .45s cubic-bezier(.3,1.4,.5,1)}
+.empty{color:var(--muted);font-weight:600;text-align:center;padding:10px}
+.result{display:none;margin-top:14px;text-align:center;background:linear-gradient(120deg,#d3f1e1,#e6defa);border-radius:26px;padding:18px;color:#3a3340}
+.result.show{display:block;animation:pop .6s cubic-bezier(.3,1.4,.5,1)}
+.result h3{margin:0;font-size:24px}.result p{margin:6px 0 0;font-weight:600}
+.pill{display:inline-block;border-radius:99px;padding:2px 14px;font-weight:700;margin:0 4px}.pill.min{background:var(--min)}.pill.max{background:var(--max)}
+.cx{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.cx .card h2{font-size:15px;color:var(--muted)}.big{font-size:20px;font-weight:700}
+.cx p{margin:6px 0 0;font-size:14px;color:var(--muted);font-weight:600}
+@keyframes pop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.07);opacity:1}100%{transform:none}}
+@media(max-width:860px){.grid{grid-template-columns:1fr}.side{position:static}.cx{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<a href="../index.html" style="position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:9999;background:#fff;color:#5a4bb0;border:2px solid #e6e2f3;border-radius:99px;padding:8px 14px;font:700 14px system-ui,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.18)">← All simulators</a>
+<div class="wrap">
+  <header class="hero">
+    <h1>⛰️ Find Min & Max</h1>
+    <p>Divide and Conquer · split the hills, find the peak and the valley in each part, then combine</p>
+    <svg viewBox="0 0 800 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 46 L0 30 L90 8 L170 34 L260 14 L340 36 L430 6 L520 32 L610 12 L700 34 L800 18 L800 46Z" fill="#fdf8f2"/></svg>
+  </header>
+
+  <div class="bar">
+    <input id="arr" value="3, 5, 1, 8, 2" aria-label="Numbers (2 to 12)" onkeydown="if(event.key==='Enter')start()">
+    <button class="pri" onclick="start()">Start</button>
+    <button id="back" onclick="step(-1,true)" disabled>◀ Back</button>
+    <button id="next" onclick="step(1,true)" disabled>Next ▶</button>
+    <button id="play" class="go" onclick="toggle()" disabled>▶ Auto play</button>
+    <select id="spd" onchange="if(playing)setPlay(true)" aria-label="Speed"><option value="5500">Slow</option><option value="3500" selected>Normal</option><option value="1800">Fast</option></select>
+    <button onclick="start()">↺ Restart</button>
+  </div>
+
+  <div class="chips" id="chips"></div>
+  <div class="say" id="say"></div>
+  <div class="stats">
+    <div class="stat">Comparisons<b id="sCmp">0</b></div>
+    <div class="stat">Function calls<b id="sCalls">0</b></div>
+    <div class="stat">Stack depth<b id="sDepth">0</b></div>
+    <div class="stat">Naive scan would use<b id="sNaive">0</b></div>
+  </div>
+
+  <div class="grid">
+    <div class="col">
+      <div class="card"><h2>The array · hills of different heights</h2><div class="terrain" id="terrain"></div></div>
+      <div class="card"><h2>Recursion tree · each box is one call</h2><div class="treewrap" id="tree"></div></div>
+    </div>
+    <div class="side">
+      <div class="card"><h2>Algorithm</h2><div class="code" id="code"></div></div>
+      <div class="card"><h2>Call stack</h2><div class="stack" id="stack"></div></div>
+    </div>
+  </div>
+
+  <div class="result" id="result"></div>
+
+  <div class="cx">
+    <div class="card"><h2>RECURRENCE</h2><div class="big">T(n) = 2T(n/2) + 2</div><p>2 sub-problems of size n/2, and 2 comparisons to combine (one for max, one for min).</p></div>
+    <div class="card"><h2>TIME</h2><div class="big">O(n)</div><p>Every element is processed once, so time grows in a straight line with n.</p></div>
+    <div class="card"><h2>SPACE</h2><div class="big">O(1) extra data</div><p>No extra array is created. The recursion only keeps about log₂ n calls on the stack.</p></div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const CODE=['MinMaxDAC(A, i, j) {','  if (i == j)','    return (A[i], A[i]);','  if ((j - i) == 1)','    if (A[i] < A[j])','      return (A[i], A[j])','    else','      return (A[j], A[i])','  else {','    mid = (i + j) / 2;','    LMin, LMax = MinMaxDAC(A, i, mid);','    RMin, RMax = MinMaxDAC(A, mid + 1, j);','    if (LMax > RMax) max = LMax; else max = RMax;','    if (LMin < RMin) min = LMin; else min = RMin;','    return (min, max);','  }','}'];
+const CHIPS=['Find the mid','Solve left half','Solve right half','Compare results','Return min & max'];
+let A=[],nodes=[],S=[],si=-1,timer=null,playing=false,prevLen=0,W=0,H=0;
+
+function build(A){
+  nodes=[];const steps=[];let cmp=0,calls=0;
+  const push=(line,msg,e)=>steps.push({line,msg,cmp,calls,...e});
+  function run(i,j,par,d,pathIn){
+    const nd={id:nodes.length,i,j,par,d,kids:[],mid:null,res:null,born:steps.length,done:-1};
+    nodes.push(nd);if(par!=null)nodes[par].kids.push(nd.id);
+    calls++;const path=[...pathIn,nd.id];
+    const P=(line,msg,e={})=>push(line,msg,{cur:nd.id,path,...e});
+    P(0,`New call: MinMaxDAC(A, ${i}, ${j}). We look at the part A[${i}..${j}] = [${A.slice(i,j+1).join(', ')}].`,{stg:0});
+    if(i===j){
+      P(1,`i == j (${i} == ${j}): this part has only ONE element, ${A[i]}.`,{});
+      nd.res={min:A[i],max:A[i],mi:i,xi:i};nd.done=steps.length;
+      P(2,`One element is both the smallest and the biggest: return (${A[i]}, ${A[i]}). No comparison needed!`,{stg:5,done:nd.id});
+    }else if(j-i===1){
+      P(3,`(j - i) == 1: this part has exactly TWO elements, ${A[i]} and ${A[j]}.`,{});
+      cmp++;const lt=A[i]<A[j];
+      P(4,`Compare A[${i}] < A[${j}], that is ${A[i]} < ${A[j]}? ${lt?'Yes':'No'}. Just ONE comparison is enough.`,{stg:4,cmpIdx:[i,j]});
+      const lo=lt?i:j,hi=lt?j:i;
+      nd.res={min:A[lo],max:A[hi],mi:lo,xi:hi};nd.done=steps.length;
+      P(lt?5:7,`Return (${A[lo]}, ${A[hi]}): the smaller one is the min, the larger one is the max.`,{stg:5,done:nd.id});
+    }else{
+      const mid=(i+j)>>1;nd.mid=mid;
+      P(9,`More than two elements, so we divide. mid = (${i} + ${j}) / 2 = ${mid}. Left part: A[${i}..${mid}]. Right part: A[${mid+1}..${j}].`,{stg:1});
+      P(10,`Step 2: find the min and max of the LEFT part A[${i}..${mid}] by calling the function again (recursion).`,{stg:2});
+      const L=run(i,mid,nd.id,d+1,path);
+      P(11,`Left part gave LMin = ${L.res.min}, LMax = ${L.res.max}. Step 3: now solve the RIGHT part A[${mid+1}..${j}].`,{stg:3});
+      const R=run(mid+1,j,nd.id,d+1,path);
+      cmp++;const mx=L.res.max>R.res.max?L.res.max:R.res.max;
+      P(12,`Step 4: compare the maxes. LMax (${L.res.max}) > RMax (${R.res.max})? ${L.res.max>R.res.max?'Yes':'No'}, so max = ${mx}.`,{stg:4,cmpIdx:[L.res.xi,R.res.xi]});
+      cmp++;const lt=L.res.min<R.res.min,mn=lt?L.res.min:R.res.min;
+      P(13,`Now compare the mins. LMin (${L.res.min}) < RMin (${R.res.min})? ${lt?'Yes':'No'}, so min = ${mn}.`,{stg:4,cmpIdx:[L.res.mi,R.res.mi]});
+      nd.res={min:mn,max:mx,mi:lt?L.res.mi:R.res.mi,xi:L.res.max>R.res.max?L.res.xi:R.res.xi};nd.done=steps.length;
+      P(14,`Step 5: return (${mn}, ${mx}) for the whole part A[${i}..${j}].`,{stg:5,done:nd.id});
+    }
+    return nd;
+  }
+  const root=run(0,A.length-1,null,0,[]);
+  steps.push({line:14,cur:0,path:[],cmp,calls,stg:5,final:true,msg:`🎉 Finished! Minimum = ${root.res.min} and Maximum = ${root.res.max}, found with only ${cmp} comparisons.`});
+  S=steps;
+  // static tree layout
+  let leaf=0;const SW=96,SH=84;
+  (function pos(id){const n=nodes[id];if(!n.kids.length){n.x=leaf++}else{n.kids.forEach(pos);n.x=(nodes[n.kids[0]].x+nodes[n.kids[n.kids.length-1]].x)/2}n.cx=12+n.x*SW+46;n.cy=12+n.d*SH+26})(0);
+  W=leaf*SW+24;H=(Math.max(...nodes.map(n=>n.d))+1)*SH+10;
+}
+
+function render(){
+  const s=S[si],n=A.length,nd=nodes[s.cur],fin=!!s.final;
+  // chips + message + stats
+  $('chips').innerHTML=CHIPS.map((c,k)=>`<div class="chip${s.stg===k+1?' on':''}"><b>STEP ${k+1}</b>${c}</div>`).join('');
+  const say=$('say');say.textContent=s.msg;say.classList.remove('pop');void say.offsetWidth;say.classList.add('pop');
+  $('sCmp').textContent=s.cmp;$('sCalls').textContent=s.calls;$('sDepth').textContent=s.path.length;$('sNaive').textContent=2*(n-1);
+  // terrain
+  const lo=Math.min(...A),hi=Math.max(...A),res=fin?nodes[0].res:(s.done!=null?nodes[s.done].res:null);
+  const cut=(!fin&&nd.mid!=null&&s.line>=9)?nd.mid:-1;
+  $('terrain').innerHTML=A.map((v,k)=>{
+    const inR=fin||(k>=nd.i&&k<=nd.j),h=34+((v-lo)/((hi-lo)||1))*120;
+    let c='col1'+(inR?'':' dim')+((s.cmpIdx||[]).includes(k)?' cmp':'')+(k===cut?' cut':''),tag='';
+    if(res&&k===res.mi){c+=' min';tag=`<span class="tg min">${fin?'MIN':'min'}</span>`}
+    if(res&&k===res.xi){c+=' max';tag=`<span class="tg max">${fin?'MAX':'max'}</span>`}
+    if(res&&k===res.mi&&k===res.xi)tag='<span class="tg max">min = max</span>';
+    return `<div class="${c}"><div class="val">${tag}${v}</div><div class="hill" style="height:${h}px"></div><div class="idx">${k}</div></div>`}).join('');
+  // tree
+  let g='';
+  nodes.filter(m=>m.born<=si&&m.par!=null).forEach(m=>{const p=nodes[m.par];g+=`<path class="edge${s.path.includes(m.id)?' on':''}" d="M${p.cx} ${p.cy+24} C${p.cx} ${p.cy+50} ${m.cx} ${m.cy-50} ${m.cx} ${m.cy-24}"/>`});
+  nodes.filter(m=>m.born<=si).forEach(m=>{
+    const dn=m.done>=0&&m.done<=si,cls='nd'+(m.id===s.cur&&!fin?' act':dn?' done':'')+(s.path.includes(m.id)?' path':'');
+    const r2=dn?`<tspan class="tmin">↓${m.res.min}</tspan><tspan class="tmax" dx="9">↑${m.res.max}</tspan>`:'…';
+    g+=`<g class="${cls}"><rect x="${m.cx-43}" y="${m.cy-24}" width="86" height="50" rx="14"/><text class="r1" x="${m.cx}" y="${m.cy-6}">[${m.i}..${m.j}]</text><text class="r2" x="${m.cx}" y="${m.cy+16}">${r2}</text></g>`});
+  $('tree').innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:${Math.min(W,620)}px;max-width:${W*1.15}px">${g}</svg>`;
+  // code
+  $('code').innerHTML=CODE.map((l,k)=>{const h=l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\b(if|else|return)\b/g,'<span class="k">$1</span>').replace(/(\b\d+\b)/g,'<span class="n">$1</span>');return `<div class="ln${k===s.line?' on':''}">${h}</div>`}).join('');
+  // call stack
+  const L=s.path.length;
+  $('stack').innerHTML=L?s.path.map((id,k)=>{const m=nodes[id];return `<div class="fr${k===L-1?' top':''}${k===L-1&&L>prevLen?' new':''}">MinMaxDAC(A, ${m.i}, ${m.j})</div>`}).join(''):'<div class="empty">empty · all calls have returned ✅</div>';
+  prevLen=L;
+  // result + buttons
+  const r=$('result');
+  if(fin){const t=nodes[0].res;r.innerHTML=`<h3>Result: <span class="pill min">min = ${t.min}</span><span class="pill max">max = ${t.max}</span></h3><p>${s.cmp} comparisons used. A simple scan would need up to ${2*(n-1)} (2 for each of the other ${n-1} elements).</p>`;r.classList.add('show')}else r.classList.remove('show');
+  $('back').disabled=si<=0;$('next').disabled=si>=S.length-1;$('play').disabled=false;lab();
+}
+function lab(){const b=$('play'),end=si>=S.length-1;b.textContent=playing?'⏸ Stop':end?'↻ Replay':si>0?'▶ Resume':'▶ Auto play';b.className=playing?'stop':'go'}
+function step(d,manual){if(manual)setPlay(false);const k=si+d;if(k<0||k>=S.length)return;si=k;render()}
+function setPlay(on){playing=on;clearInterval(timer);if(on)timer=setInterval(()=>{if(si>=S.length-1){setPlay(false);return}step(1);if(si>=S.length-1)setPlay(false)},+$('spd').value);lab()}
+function toggle(){if(playing){setPlay(false);return}if(si>=S.length-1){si=0;prevLen=0;render()}setPlay(true)}
+function start(){
+  setPlay(false);
+  const v=$('arr').value.split(',').map(t=>t.trim()).filter(t=>t!=='').map(Number);
+  if(v.length<2||v.length>12||v.some(x=>!Number.isFinite(x))){alert('Please enter 2 to 12 numbers separated by commas.');return}
+  A=v;prevLen=0;build(A);si=0;render();
+}
+document.addEventListener('keydown',e=>{if(/INPUT|SELECT/.test(e.target.tagName)||!S.length)return;if(e.key==='ArrowRight')step(1,true);if(e.key==='ArrowLeft')step(-1,true);if(e.key===' '){e.preventDefault();toggle()}});
+start();
+</script>
+</body>
+</html>

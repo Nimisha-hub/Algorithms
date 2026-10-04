@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quick Sort Visual Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f4fb; --card:#ffffff; --ink:#2e2a4a; --muted:#7a7799; --line:#e6e2f3;
+  --lav:#e9e3fb; --lav-d:#8b79d9;
+  --pivot:#ffe3e8; --pivot-d:#e5667e;
+  --cmp:#dcecff; --cmp-d:#5b9bea;
+  --swap:#d9f5e6; --swap-d:#3fb37a;
+  --done:#fff1d6; --done-d:#e0a23a;
+  --bar:#d9d4ee;
+  --code-bg:#f1eefb; --code-ink:#4a4470;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1f1c2e; --card:#2a2640; --ink:#efecff; --muted:#a8a3c9; --line:#3b3659;
+    --lav:#3a3360; --lav-d:#b3a4f5;
+    --pivot:#4a2a37; --pivot-d:#ff8fa5;
+    --cmp:#243a5a; --cmp-d:#8cbcff;
+    --swap:#1f4533; --swap-d:#6fdba5;
+    --done:#4a3d1f; --done-d:#f2c46d;
+    --bar:#3f3a63; --code-bg:#241f3a; --code-ink:#d8d3f5;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1f1c2e; --card:#2a2640; --ink:#efecff; --muted:#a8a3c9; --line:#3b3659;
+  --lav:#3a3360; --lav-d:#b3a4f5;
+  --pivot:#4a2a37; --pivot-d:#ff8fa5;
+  --cmp:#243a5a; --cmp-d:#8cbcff;
+  --swap:#1f4533; --swap-d:#6fdba5;
+  --done:#4a3d1f; --done-d:#f2c46d;
+  --bar:#3f3a63; --code-bg:#241f3a; --code-ink:#d8d3f5;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+  line-height:1.5;
+}
+.container{max-width:1080px;margin:0 auto;padding:24px 18px 40px}
+
+header{
+  background:linear-gradient(120deg,#e9e3fb 0%,#dff1ff 55%,#d9f5e6 100%);
+  color:#2e2a4a;border-radius:24px;padding:28px 30px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) header{background:linear-gradient(120deg,#3a3360,#27405f 60%,#244838);color:#efecff}
+}
+h1{margin:0 0 4px;font-size:clamp(26px,5vw,36px);font-weight:800;letter-spacing:-.5px}
+.subtitle{opacity:.75;font-weight:500}
+
+.panel{
+  background:var(--card);border:1px solid var(--line);border-radius:22px;
+  padding:22px;margin-top:16px;
+}
+
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input{
+  flex:1;min-width:260px;padding:13px 16px;border:2px solid var(--line);
+  border-radius:14px;font:inherit;font-size:16px;background:var(--bg);color:var(--ink);
+  outline:none;transition:border-color .2s
+}
+input:focus{border-color:var(--lav-d)}
+button{
+  border:0;border-radius:14px;padding:13px 20px;font:inherit;font-weight:800;
+  cursor:pointer;background:var(--lav-d);color:#fff;transition:transform .12s,filter .2s
+}
+button:hover:not(:disabled){filter:brightness(1.06)}
+button:active:not(:disabled){transform:scale(.96)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--cmp-d);outline-offset:2px}
+button.secondary{background:var(--lav);color:var(--lav-d)}
+button.success{background:var(--swap-d)}
+button:disabled{opacity:.4;cursor:not-allowed}
+
+.status{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{border-radius:16px;padding:12px 10px;text-align:center;color:var(--muted);font-weight:700;font-size:14px}
+.stat b{display:block;font-size:26px;margin-top:2px;color:var(--ink);font-weight:800}
+.stat:nth-child(1){background:var(--pivot)}
+.stat:nth-child(2){background:var(--cmp)}
+.stat:nth-child(3){background:var(--swap)}
+.stat:nth-child(4){background:var(--lav)}
+
+.progress{height:8px;background:var(--lav);border-radius:99px;margin-top:16px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--lav-d);border-radius:99px;transition:width .35s}
+
+.visual{
+  min-height:330px;display:flex;flex-direction:column;justify-content:center;
+  align-items:center;overflow-x:auto;margin-top:8px
+}
+.array{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:flex-end;padding:8px 0}
+.item{position:relative;text-align:center;min-width:60px;transition:opacity .35s}
+.item.out{opacity:.35}
+.tag{height:22px;font-size:12px;font-weight:800;color:var(--pivot-d);margin-bottom:4px}
+.bar{
+  height:var(--h);min-height:18px;width:60px;border-radius:14px 14px 6px 6px;
+  background:var(--bar);margin-bottom:8px;transition:height .35s,background .35s
+}
+.box{
+  width:60px;height:60px;border:3px solid var(--line);border-radius:16px;
+  background:var(--card);display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:800;transition:background .3s,border-color .3s,transform .3s
+}
+.label{font-size:12px;color:var(--muted);margin-top:7px;font-weight:700}
+
+.item.active .box{background:var(--cmp);border-color:var(--cmp-d);transform:translateY(-4px)}
+.item.active .bar{background:var(--cmp-d)}
+.item.swap .box{background:var(--swap);border-color:var(--swap-d);transform:translateY(-4px)}
+.item.swap .bar{background:var(--swap-d)}
+.item.sorted .box{background:var(--done);border-color:var(--done-d)}
+.item.sorted .bar{background:var(--done-d)}
+.item.pivot .box{background:var(--pivot);border-color:var(--pivot-d)}
+.item.pivot .bar{background:var(--pivot-d)}
+
+.message{
+  text-align:center;margin-top:18px;font-size:18px;font-weight:800;min-height:28px;
+  padding:10px 18px;border-radius:99px;background:var(--lav);color:var(--ink)
+}
+.legend{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-top:14px;color:var(--muted);font-size:14px;font-weight:700}
+.dot{display:inline-block;width:14px;height:14px;border-radius:5px;margin-right:6px;vertical-align:-2px}
+.dot.p{background:var(--pivot);border:2px solid var(--pivot-d)}
+.dot.c{background:var(--cmp);border:2px solid var(--cmp-d)}
+.dot.s{background:var(--swap);border:2px solid var(--swap-d)}
+.dot.f{background:var(--done);border:2px solid var(--done-d)}
+
+.info{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.info h2{margin:0 0 10px;font-size:20px}
+.info p{margin:8px 0;color:var(--muted)}
+.info p b{color:var(--ink)}
+.code{
+  background:var(--code-bg);color:var(--code-ink);border-radius:16px;padding:18px;
+  font-family:Consolas,'SFMono-Regular',monospace;line-height:1.7;white-space:pre-wrap;
+  overflow-x:auto;font-size:14px
+}
+
+@media(max-width:700px){
+  .status{grid-template-columns:repeat(2,1fr)}
+  .info{grid-template-columns:1fr}
+  input{min-width:100%}
+  .item{min-width:44px}
+  .bar,.box{width:44px}
+  .box{height:44px;font-size:17px;border-radius:12px}
+  .array{gap:8px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<a href="../index.html" style="position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:9999;background:#fff;color:#5a4bb0;border:2px solid #e6e2f3;border-radius:99px;padding:8px 14px;font:700 14px system-ui,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.18)">← All simulators</a>
+<div class="container">
+<header>
+  <h1>Quick Sort Visual Simulator</h1>
+  <div class="subtitle">Watch pivots, partitions and recursion play out one step at a time</div>
+</header>
+
+<section class="panel">
+  <div class="controls">
+    <input id="input" value="8, 3, 7, 4, 9, 2, 6" placeholder="Enter numbers separated by commas" aria-label="Numbers to sort">
+    <button onclick="start()">Start</button>
+    <button class="secondary" id="nextBtn" onclick="nextStep()" disabled>Next step</button>
+    <button class="success" id="autoBtn" onclick="autoRun()" disabled>▶ Auto play</button>
+    <button class="secondary" onclick="resetAll()">Reset</button>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="status">
+    <div class="stat">Pivot<b id="pivot">—</b></div>
+    <div class="stat">Comparisons<b id="comparisons">0</b></div>
+    <div class="stat">Swaps<b id="swaps">0</b></div>
+    <div class="stat">Step<b id="step">0</b></div>
+  </div>
+  <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+
+  <div class="visual">
+    <div id="array" class="array"></div>
+    <div id="message" class="message" aria-live="polite">Enter an array and click Start.</div>
+    <div class="legend">
+      <span><i class="dot p"></i>Pivot</span>
+      <span><i class="dot c"></i>Comparison</span>
+      <span><i class="dot s"></i>Swap</span>
+      <span><i class="dot f"></i>Sorted</span>
+    </div>
+  </div>
+</section>
+
+<section class="panel info">
+<div>
+<h2>How it works</h2>
+<p><b>1. Choose a pivot:</b> The last element of the current subarray is selected.</p>
+<p><b>2. Partition:</b> Elements smaller than the pivot move to its left; larger elements move to its right.</p>
+<p><b>3. Place pivot:</b> The pivot reaches its final sorted position.</p>
+<p><b>4. Recurse:</b> Quick Sort repeats the process on the left and right subarrays.</p>
+</div>
+<div>
+<h2>Pseudocode</h2>
+<div class="code">QUICKSORT(A, low, high)
+    if low &lt; high:
+        p = PARTITION(A, low, high)
+        QUICKSORT(A, low, p-1)
+        QUICKSORT(A, p+1, high)</div>
+</div>
+</section>
+</div>
+
+<script>
+let original=[], a=[], queue=[], qi=0, timer=null;
+let comparisons=0, swaps=0, stepNo=0, done=false;
+let sortedSet=new Set();
+
+function makeEvents(arr){
+  let x=arr.slice(), events=[];
+  function part(lo,hi){
+    if(lo>=hi) return;
+    const pivot=x[hi];
+    events.push({type:"pivot",lo,hi,p:hi,pivot});
+    let i=lo;
+    for(let j=lo;j<hi;j++){
+      events.push({type:"compare",lo,hi,p:hi,i,j,pivot});
+      if(x[j] < pivot){
+        if(i!==j){
+          [x[i],x[j]]=[x[j],x[i]];
+          events.push({type:"swap",lo,hi,p:hi,i,j,pivot});
+        }
+        i++;
+      }
+    }
+    if(i!==hi){
+      [x[i],x[hi]]=[x[hi],x[i]];
+      events.push({type:"swap",lo,hi,p:i,i,j:hi,pivot});
+    }
+    events.push({type:"placed",lo,hi,p:i,pivot:x[i]});
+    part(lo,i-1); part(i+1,hi);
+  }
+  part(0,x.length-1);
+  events.push({type:"done"});
+  return events;
+}
+
+function render(){
+  const root=document.getElementById("array");
+  root.innerHTML="";
+  const {pivot=-1, active=[], swap=[], sorted=[], lo=-1, hi=-1}=window.view||{};
+  a.forEach((v,i)=>{
+    const item=document.createElement("div"); item.className="item";
+    const tag=document.createElement("div"); tag.className="tag";
+    tag.textContent=(i===pivot)?"pivot":"";
+    const bar=document.createElement("div");
+    bar.className="bar"; bar.style.setProperty("--h",Math.max(25,Math.min(170,25+v*12))+"px");
+    const box=document.createElement("div"); box.className="box"; box.textContent=v;
+    if(i===pivot){item.classList.add("pivot")}
+    if(active.includes(i)){item.classList.add("active")}
+    if(swap.includes(i)){item.classList.add("swap")}
+    if(sorted.includes(i)){item.classList.add("sorted")}
+    // dim elements outside the current subarray (visual only)
+    if(lo>=0 && (i<lo||i>hi) && !sorted.includes(i)){item.classList.add("out")}
+    item.appendChild(tag); item.appendChild(bar); item.appendChild(box);
+    const lab=document.createElement("div"); lab.className="label"; lab.textContent=i;
+    item.appendChild(lab);
+    root.appendChild(item);
+  });
+}
+
+function start(){
+  clearInterval(timer);
+  let vals=document.getElementById("input").value.split(",").map(s=>Number(s.trim())).filter(Number.isFinite);
+  if(vals.length<2){alert("Please enter at least two numbers.");return}
+  if(vals.length>14){alert("For a clear visualization, use 2–14 numbers.");return}
+  original=vals.slice(); a=vals.slice(); comparisons=0; swaps=0; stepNo=0; done=false;
+  sortedSet=new Set();
+  queue=makeEvents(a); qi=0; window.view={pivot:-1,active:[],swap:[],sorted:[]};
+  document.getElementById("nextBtn").disabled=false;
+  document.getElementById("autoBtn").disabled=false;
+  updateStats(); render();
+  document.getElementById("message").textContent="Ready. Click Next step to begin.";
+}
+function nextStep(){
+  if(done || qi>=queue.length)return;
+  const e=queue[qi++]; stepNo++;
+  const keep=[...sortedSet];
+  if(e.type==="pivot"){
+    window.view={pivot:e.p,active:[],swap:[],sorted:keep,lo:e.lo,hi:e.hi};
+    document.getElementById("message").textContent=`Choose pivot ${e.pivot} (last element of this subarray).`;
+  }else if(e.type==="compare"){
+    comparisons++;
+    window.view={pivot:e.p,active:[e.i,e.j],swap:[],sorted:keep,lo:e.lo,hi:e.hi};
+    document.getElementById("message").textContent=`Compare ${a[e.j]} with pivot ${e.pivot}.`;
+  }else if(e.type==="swap"){
+    [a[e.i],a[e.j]]=[a[e.j],a[e.i]];
+    swaps++;
+    window.view={pivot:e.p,active:[],swap:[e.i,e.j],sorted:keep,lo:e.lo,hi:e.hi};
+    document.getElementById("message").textContent=`Swap positions ${e.i} and ${e.j}.`;
+  }else if(e.type==="placed"){
+    // The pivot has already been moved by the preceding swap event.
+    sortedSet.add(e.p);
+    window.view={pivot:e.p,active:[],swap:[],sorted:[...sortedSet],lo:e.lo,hi:e.hi};
+    document.getElementById("message").textContent=`Pivot ${e.pivot} is now in its correct position.`;
+  }else if(e.type==="done"){
+    done=true;
+    window.view={pivot:-1,active:[],swap:[],sorted:a.map((_,i)=>i)};
+    document.getElementById("message").textContent="✓ Sorting complete!";
+    document.getElementById("nextBtn").disabled=true;
+    document.getElementById("autoBtn").disabled=true;
+  }
+  updateStats(); render();
+}
+function autoRun(){
+  clearInterval(timer);
+  if(done)return;
+  timer=setInterval(()=>{
+    if(done){clearInterval(timer);return}
+    nextStep();
+  },700);
+}
+function resetAll(){
+  clearInterval(timer); queue=[]; qi=0; done=false;
+  original=[]; a=[]; comparisons=0; swaps=0; stepNo=0; sortedSet=new Set();
+  window.view={pivot:-1,active:[],swap:[],sorted:[]};
+  document.getElementById("array").innerHTML="";
+  document.getElementById("message").textContent="Enter an array and click Start.";
+  document.getElementById("nextBtn").disabled=true;
+  document.getElementById("autoBtn").disabled=true;
+  updateStats();
+}
+function updateStats(){
+ document.getElementById("pivot").textContent=(window.view&&window.view.pivot>=0)?a[window.view.pivot]:"—";
+ document.getElementById("comparisons").textContent=comparisons;
+ document.getElementById("swaps").textContent=swaps;
+ document.getElementById("step").textContent=stepNo;
+ document.getElementById("prog").style.width=queue.length?Math.round(qi/queue.length*100)+"%":"0";
+}
+</script>
+</body>
+</html>

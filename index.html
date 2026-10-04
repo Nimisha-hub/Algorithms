@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Algo Playground – Learn algorithms by playing</title>
+<meta name="description" content="Interactive algorithm simulators: Quick Sort, Merge Sort, Binary Search, Stack vs Queue and Min & Max.">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fbf7ff;--card:#fff;--ink:#2e2a4a;--muted:#7d7a9c;--line:#ebe5f7;
+  --lav:#e9e2fc;--lav-d:#7a64d6;--mint:#d5f3e4;--mint-d:#2f8f69;--sun:#fff0c2;--sun-d:#b98710;
+  --pink:#ffdce6;--pink-d:#d9507c;--sky:#d9ebff;--sky-d:#3f87d6;--peach:#ffe3d1;--peach-d:#d9743a;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1829;--card:#272339;--ink:#f0ecff;--muted:#a9a4c8;--line:#3a3555;--lav:#3a3260;--mint:#1f3a30;--sun:#4a3e1c;--pink:#4a2a37;--sky:#223a58;--peach:#4a3326}}
+:root[data-theme="dark"]{--bg:#1b1829;--card:#272339;--ink:#f0ecff;--muted:#a9a4c8;--line:#3a3555;--lav:#3a3260;--mint:#1f3a30;--sun:#4a3e1c;--pink:#4a2a37;--sky:#223a58;--peach:#4a3326}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;line-height:1.5}
+h1,h2,h3,.brand{font-family:'Baloo 2','Nunito',system-ui,sans-serif;font-weight:800;margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding:16px 16px 40px}
+a{color:inherit}
+.btn,button{font:inherit;font-weight:800;border:0;border-radius:14px;padding:10px 18px;cursor:pointer;text-decoration:none;display:inline-block;transition:transform .12s,filter .2s}
+.btn{background:var(--lav-d);color:#fff}.sec{background:var(--lav);color:var(--lav-d)}
+.btn:hover,button:hover{filter:brightness(.95)}.btn:active,button:active{transform:scale(.96)}
+:focus-visible{outline:3px solid var(--sky-d);outline-offset:2px}
+
+.hero{position:relative;overflow:hidden;border-radius:34px;padding:20px 26px 38px;background:linear-gradient(125deg,#ffe3d6 0%,#efe3ff 45%,#d6f1ff 100%);color:#2e2a4a;text-align:center}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hero{background:linear-gradient(125deg,#4a3326,#3a3260 50%,#223a58)}:root:not([data-theme="light"]) .hero{color:#f0ecff}}
+:root[data-theme="dark"] .hero{background:linear-gradient(125deg,#4a3326,#3a3260 50%,#223a58);color:#f0ecff}
+.top{display:flex;align-items:center;gap:10px}.brand{font-size:22px}.grow{flex:1}
+.top button{background:rgba(255,255,255,.55);color:#2e2a4a;padding:8px 12px}
+.hero h1{font-size:clamp(32px,6.4vw,58px);line-height:1.08;margin:26px auto 10px;max-width:760px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,#7a64d6,#e0508a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{margin:0 auto;max-width:560px;font-weight:700;opacity:.8}
+.mascots{display:flex;justify-content:center;gap:clamp(8px,3vw,22px);margin:22px 0 4px;font-size:clamp(34px,7vw,56px)}
+.mascots span{animation:bob 2.4s ease-in-out infinite}.mascots span:nth-child(2){animation-delay:.3s}.mascots span:nth-child(3){animation-delay:.6s}.mascots span:nth-child(4){animation-delay:.9s}.mascots span:nth-child(5){animation-delay:1.2s}
+.cta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.cta .sec{background:rgba(255,255,255,.65);color:#5a47b8}
+
+.me{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;background:var(--card);border:2px solid var(--line);border-radius:26px;padding:16px 20px;margin-top:16px}
+.avatar{width:62px;height:62px;border-radius:20px;background:var(--sun);display:grid;place-items:center;font-size:34px}
+.lvl b{font-family:'Baloo 2','Nunito',system-ui,sans-serif;font-size:20px}.xpbar{height:12px;border-radius:99px;background:var(--lav);overflow:hidden;margin:6px 0}
+.xpbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#9a86ec,#ff9fbd);border-radius:99px;transition:width .6s}
+.xpnote{font-size:13px;color:var(--muted);font-weight:700}
+.badges{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+.bd{font-size:13px;font-weight:800;padding:4px 12px;border-radius:99px;background:var(--line);color:var(--muted);filter:grayscale(1);opacity:.7}
+.bd.on{background:var(--sun);color:var(--sun-d);filter:none;opacity:1;animation:pop .5s}
+
+section{margin-top:34px}
+section>h2{font-size:28px}.sub{color:var(--muted);font-weight:700;margin:2px 0 14px}
+.trail{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:34px 6px 52px;position:relative;overflow-x:auto;min-width:0}
+.trail::before{content:"";position:absolute;left:8%;right:8%;top:70px;border-top:5px dotted var(--lav-d);opacity:.35}
+.stop{position:relative;text-align:center;background:none;color:var(--ink);padding:0;min-width:110px;z-index:1}
+.stop:nth-child(even){transform:translateY(22px)}
+.stop .dot{width:68px;height:68px;border-radius:50%;margin:0 auto 6px;display:grid;place-items:center;font-size:30px;background:var(--lav);border:4px solid var(--card);box-shadow:0 0 0 3px var(--lav-d);transition:transform .2s,background .3s}
+.stop:hover .dot{transform:scale(1.1) rotate(-6deg)}
+.stop.done .dot{background:var(--mint);box-shadow:0 0 0 3px var(--mint-d)}
+.stop.done .dot::after{content:"⭐";position:absolute;top:-6px;right:calc(50% - 44px);font-size:20px;animation:pop .5s}
+.stop.next .dot{animation:pulse 1.6s infinite}
+.stop small{display:block;font-weight:800;font-size:13px;line-height:1.2}
+.here{position:absolute;top:-24px;left:50%;transform:translateX(-50%);background:var(--pink-d);color:#fff;font-size:11px;font-weight:800;padding:2px 10px;border-radius:99px;white-space:nowrap;animation:bob 1.6s ease-in-out infinite}
+.tprog{margin-top:0;font-weight:800;color:var(--muted);text-align:center}
+
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.tools input{flex:1;min-width:200px;font:inherit;font-weight:700;padding:11px 16px;border:2px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);outline:none}
+.tools input:focus{border-color:var(--lav-d)}
+.fl{display:flex;gap:8px;flex-wrap:wrap}.fl button{background:var(--card);border:2px solid var(--line);color:var(--muted);padding:8px 14px}
+.fl button.on{background:var(--lav-d);border-color:var(--lav-d);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px}
+.sim{background:var(--card);border:2px solid var(--line);border-radius:28px;padding:14px 14px 16px;display:flex;flex-direction:column;gap:8px;transition:transform .2s,box-shadow .2s}
+.sim:hover{transform:translateY(-5px);box-shadow:0 14px 30px rgba(122,100,214,.18)}
+.sim.flash{animation:flash 1.2s}
+.sim h3{font-size:22px}.sim p{margin:0;color:var(--muted);font-weight:700;font-size:14.5px}
+.sim ul{margin:0;padding-left:20px;font-size:14px;font-weight:700}.sim li::marker{color:var(--lav-d)}
+.meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tag{font-size:12px;font-weight:800;padding:2px 10px;border-radius:99px;background:var(--lav);color:var(--lav-d)}
+.tag.Easy{background:var(--mint);color:var(--mint-d)}.tag.Medium{background:var(--peach);color:var(--peach-d)}
+.cx{font-size:13px;font-weight:800;color:var(--sky-d)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
+.acts .learn{background:var(--lav);color:var(--lav-d)}.acts .learn[aria-pressed="true"]{background:var(--mint);color:var(--mint-d)}
+.pv{height:96px;border-radius:20px;display:flex;align-items:flex-end;justify-content:center;gap:5px;padding:12px;overflow:hidden;position:relative}
+.pv.ds{background:var(--sky);gap:28px;align-items:flex-end}.pv.bs{background:var(--mint);align-items:center}.pv.ms{background:var(--pink)}.pv.qs{background:var(--sun)}.pv.mm{background:var(--lav)}
+.pv span{width:16px;border-radius:6px 6px 2px 2px;background:var(--lav-d);height:var(--a);animation:grow 1.6s ease-in-out infinite alternate}
+.pv.ms span{background:var(--pink-d)}.pv.qs span{background:var(--sun-d)}.pv.mm span{background:var(--lav-d)}.pv.mm span.mn{background:#3fb6c2}.pv.mm span.mx{background:#ff7d66}
+@keyframes grow{to{height:var(--b)}}
+.stk{display:flex;flex-direction:column-reverse;gap:3px}.que{display:flex;gap:3px}
+.stk i,.que i{display:block;width:34px;height:15px;border-radius:5px;background:var(--sky-d);animation:drop 2.4s ease-in-out infinite}
+.que i{width:15px;height:30px;background:#46b8b0;animation-name:slide}
+.stk i:nth-child(2),.que i:nth-child(2){animation-delay:.3s;opacity:.85}.stk i:nth-child(3),.que i:nth-child(3){animation-delay:.6s;opacity:.7}
+@keyframes drop{0%{transform:translateY(-60px);opacity:0}30%,80%{transform:none;opacity:1}100%{transform:translateY(-40px);opacity:0}}
+@keyframes slide{0%{transform:translateX(60px);opacity:0}30%,80%{transform:none;opacity:1}100%{transform:translateX(-50px);opacity:0}}
+.bs i{width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--mint-d);flex:none}
+.bs b{position:absolute;bottom:10px;left:10%;font-size:28px;animation:walk 4s ease-in-out infinite}
+@keyframes walk{0%{left:8%}25%{left:62%}50%{left:36%}75%{left:48%}100%{left:8%}}
+
+.quiz{background:var(--card);border:2px solid var(--line);border-radius:28px;padding:20px}
+.quiz .q{font-family:'Baloo 2','Nunito',system-ui,sans-serif;font-weight:700;font-size:21px;margin:8px 0 12px}
+.opts{display:grid;gap:8px}.opts button{text-align:left;background:var(--lav);color:var(--ink);border:2px solid transparent;padding:12px 16px}
+.opts button.ok{background:var(--mint);border-color:var(--mint-d);animation:pop .4s}.opts button.no{background:var(--pink);border-color:var(--pink-d);animation:shake .4s}
+.exp{margin-top:12px;font-weight:700;padding:10px 14px;border-radius:14px;background:var(--sun);display:none}
+.qrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.tblw{overflow-x:auto;border:2px solid var(--line);border-radius:22px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-weight:700;font-size:14.5px}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line)}th{background:var(--lav);color:var(--lav-d)}tr:last-child td{border-bottom:0}
+.good{color:var(--mint-d)}.mid{color:var(--sun-d)}.bad{color:var(--pink-d)}
+footer{margin-top:40px;text-align:center;color:var(--muted);font-weight:700;font-size:14px}
+footer button{background:none;color:var(--muted);text-decoration:underline;padding:4px}
+.tip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.tip div{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:14px 16px;font-weight:700;font-size:14.5px}.tip b{display:block;font-family:'Baloo 2','Nunito',system-ui,sans-serif;font-size:18px}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes pop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.12)}100%{transform:none;opacity:1}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px var(--lav-d),0 0 0 3px rgba(122,100,214,.4)}50%{box-shadow:0 0 0 3px var(--lav-d),0 0 0 14px rgba(122,100,214,0)}}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes flash{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 6px var(--lav-d)}}
+@media(max-width:720px){.tip{grid-template-columns:1fr}.me{grid-template-columns:1fr}.trail{grid-template-columns:repeat(5,110px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="top"><span class="brand">🧩 Algo Playground</span><span class="grow"></span><button id="themeBtn" aria-label="Switch light or dark theme">🌙</button></div>
+    <h1>Learn algorithms by <em>playing</em> with them</h1>
+    <p>Five interactive simulators. Watch every step slowly, then test yourself and collect stars.</p>
+    <div class="mascots" aria-hidden="true"><span>🐧</span><span>🐼</span><span>🐰</span><span>🐸</span><span>🐱</span></div>
+    <div class="cta"><a class="btn" href="#sims">Start learning</a><button class="sec" id="surprise">🎲 Surprise me</button></div>
+  </header>
+
+  <div class="me" aria-label="Your progress">
+    <div class="avatar" id="avatar">🌱</div>
+    <div class="lvl"><b id="lvlName">Level 1 · Seedling</b><div class="xpbar"><i id="xpFill"></i></div><div class="xpnote" id="xpNote"></div></div>
+    <div class="badges" id="badges"></div>
+  </div>
+
+  <section>
+    <h2>Your learning trail</h2><p class="sub">Follow the path from easy to tricky. Mark a stop as learned to earn a ⭐</p>
+    <div class="trail" id="trail"></div><div class="tprog" id="tprog"></div>
+  </section>
+
+  <section id="sims">
+    <h2>Simulators</h2><p class="sub">Every one has Next / Back buttons, auto play and a Stop / Resume button.</p>
+    <div class="tools"><input id="q" type="search" placeholder="🔍 Search: sort, stack, recursion…" aria-label="Search simulators"><div class="fl" id="filters"></div></div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section>
+    <h2>Quick quiz</h2><p class="sub">Answer correctly to earn +5 XP (once per question)</p>
+    <div class="quiz" id="quiz"></div>
+  </section>
+
+  <section>
+    <h2>Cheat sheet</h2><p class="sub">Time and space at a glance</p>
+    <div class="tblw"><table>
+      <tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Extra space</th><th>Big idea</th></tr>
+      <tr><td>Binary Search</td><td class="good">O(1)</td><td class="good">O(log n)</td><td class="good">O(log n)</td><td class="good">O(1)</td><td>Halve a sorted range each time</td></tr>
+      <tr><td>Merge Sort</td><td class="mid">O(n log n)</td><td class="mid">O(n log n)</td><td class="mid">O(n log n)</td><td class="bad">O(n)</td><td>Divide, sort halves, merge</td></tr>
+      <tr><td>Quick Sort</td><td class="mid">O(n log n)</td><td class="mid">O(n log n)</td><td class="bad">O(n²)</td><td class="good">O(log n)</td><td>Pivot, partition, recurse</td></tr>
+      <tr><td>Min &amp; Max (D&amp;C)</td><td class="good">O(n)</td><td class="good">O(n)</td><td class="good">O(n)</td><td class="good">O(1) data</td><td>Solve halves, 2 comparisons to combine</td></tr>
+      <tr><td>Stack push / pop</td><td colspan="3" class="good">O(1)</td><td class="good">O(1)</td><td>Last In, First Out</td></tr>
+      <tr><td>Queue enqueue / dequeue</td><td colspan="3" class="good">O(1)</td><td class="good">O(1)</td><td>First In, First Out</td></tr>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Teaching tips</h2>
+    <div class="tip">
+      <div><b>🐢 Go slow</b>Set the speed menu to Slow, press Stop to explain, then Resume to continue.</div>
+      <div><b>🔮 Predict first</b>Pause before each step and ask: what will happen next?</div>
+      <div><b>✏️ Try your own</b>Type your own numbers, including tricky ones like sorted or repeated values.</div>
+    </div>
+  </section>
+
+  <footer><p>Made for learners 💜 · Your progress is saved only in this browser.</p><button id="reset">Reset my progress</button></footer>
+</div>
+
+<script>
+/* ===== Add or edit simulators here ===== */
+const SIMS=[
+ {id:'stack',icon:'🧱',title:'Stack vs Queue',file:'simulators/stack-vs-queue.html',lvl:'Easy',cats:['ds'],pv:'ds',cx:'O(1) per operation',
+  desc:'Push, pop, enqueue and dequeue the same items and see why one reverses the order and the other keeps it.',
+  learn:['LIFO vs FIFO','Push, Pop, Peek, Enqueue, Dequeue','Overflow and underflow']},
+ {id:'bsearch',icon:'🐧',title:'Binary Search · Penguins',file:'simulators/binary-search-penguin.html',lvl:'Easy',cats:['search'],pv:'bs',cx:'O(log n)',
+  desc:'A crowned penguin searches a sorted line. Heads nod and shake, and speech bubbles explain each step.',
+  learn:['Why the list must be sorted','lo, mid and hi pointers','Halving the range each round']},
+ {id:'merge',icon:'🐼',title:'Merge Sort + Binary Search · Animals',file:'simulators/merge-sort-binary-search-animals.html',lvl:'Medium',cats:['sort','search','dc'],pv:'ms',cx:'O(n log n)',
+  desc:'Pick pandas, bunnies, frogs or cats. Watch divide, compare and merge, then search the sorted line.',
+  learn:['Divide, conquer, merge','The 6 stages of merge sort','Sort first, then search']},
+ {id:'quick',icon:'⚡',title:'Quick Sort',file:'simulators/quick-sort.html',lvl:'Medium',cats:['sort','dc'],pv:'qs',cx:'O(n log n) average',
+  desc:'See the pivot, the partition and the recursion, with swaps and comparisons counted live.',
+  learn:['Choosing a pivot','Partitioning around it','Recursing on both sides']},
+ {id:'minmax',icon:'⛰️',title:'Find Min & Max · Divide and Conquer',file:'simulators/min-max-divide-conquer.html',lvl:'Medium',cats:['dc'],pv:'mm',cx:'O(n)',
+  desc:'Split the hills, solve each half by recursion and combine with two comparisons. Includes a recursion tree and call stack.',
+  learn:['Base cases of 1 and 2 elements','Recursion tree and call stack','T(n) = 2T(n/2) + 2']}
+];
+const CATS={all:'All',ds:'Data structures',search:'Searching',sort:'Sorting',dc:'Divide & Conquer'};
+const QZ=[
+ ['stack','Which structure is Last In, First Out (LIFO)?',['Queue','Stack','Array only'],1,'A stack gives back the most recently added item first, like a pile of plates.'],
+ ['stack','You enqueue A, B, C and then dequeue once. What comes out?',['A','C','B'],0,'A queue is FIFO. The first item in (A) is the first one out.'],
+ ['stack','What does Peek do on a stack?',['Removes the top item','Shows the top item without removing it','Empties the stack'],1,'Peek only looks at the top. The item stays where it is.'],
+ ['bsearch','Binary search needs the list to be…',['Sorted','Reversed','Full of unique numbers'],0,'It throws away half the list by comparing with the middle, which only works when the list is in order.'],
+ ['bsearch','lo = 0 and hi = 8. What is mid?',['3','4','5'],1,'(0 + 8) / 2 = 4.'],
+ ['bsearch','About how many rounds does binary search need for 1000 sorted items?',['About 10','About 100','About 500'],0,'1000 halves down to 1 in roughly 10 steps, because log₂ 1000 ≈ 10.'],
+ ['merge','What is the time complexity of merge sort?',['O(n)','O(n log n)','O(n²)'],1,'It splits log n times and merges n items at every level.'],
+ ['merge','When merging two sorted groups, which front item goes first?',['The bigger one','The smaller one','Always the left one'],1,'Taking the smaller front item keeps the merged group in order.'],
+ ['quick','After partitioning, where is the pivot?',['In its final sorted position','Always at index 0','Still unsorted'],0,'Everything smaller is on its left and everything bigger on its right, so it will never move again.'],
+ ['quick','Quick sort with the last element as pivot is slowest (O(n²)) on…',['A random list','An already sorted list','A list of 3 items'],1,'Each pivot is the biggest item, so one side is empty and the work does not halve.'],
+ ['minmax','How many comparisons does a part with exactly 2 elements need?',['0','1','2'],1,'Compare the two once: the smaller is the min and the larger is the max.'],
+ ['minmax','What does MinMaxDAC return when i == j?',['(A[i], A[i])','(0, 0)','Nothing'],0,'One element is both the minimum and the maximum.']
+];
+const TITLES=['Seedling','Explorer','Coder','Problem Solver','Algorithm Wizard','Legend'];
+const $=id=>document.getElementById(id);
+let st={learned:[],quiz:[]},filter='all',query='',qi=-1,answered=false;
+try{const r=JSON.parse(localStorage.getItem('algoPlayground.v1'));if(r&&Array.isArray(r.learned)&&Array.isArray(r.quiz))st=r}catch(e){}
+const save=()=>{try{localStorage.setItem('algoPlayground.v1',JSON.stringify(st))}catch(e){}};
+const xp=()=>st.learned.length*25+st.quiz.length*5;
+
+function bars(n,cls){return Array.from({length:n},(_,k)=>`<span class="${cls&&k===1?'mn':cls&&k===n-2?'mx':''}" style="--a:${18+(k*37)%48}px;--b:${18+(k*53+22)%48}px;animation-delay:${k*.12}s"></span>`).join('')}
+function preview(t){
+  if(t==='ds')return '<div class="stk"><i></i><i></i><i></i></div><div class="que"><i></i><i></i><i></i></div>';
+  if(t==='bs')return Array(8).fill('<i></i>').join('')+'<b>🐧</b>';
+  return bars(t==='mm'?9:8,t==='mm');
+}
+function renderStats(){
+  const x=xp(),lv=Math.floor(x/50)+1,n=st.learned.length;
+  $('lvlName').textContent=`Level ${lv} · ${TITLES[Math.min(lv-1,TITLES.length-1)]}`;
+  $('avatar').textContent=['🌱','🧭','💻','🧩','🧙','👑'][Math.min(lv-1,5)];
+  $('xpFill').style.width=(x%50)*2+'%';
+  $('xpNote').textContent=`${x} XP · ${50-(x%50)} XP to the next level · ${n} of ${SIMS.length} simulators learned`;
+  const B=[['🌱 First step',n>=1],['🧭 Halfway there',n>=3],['🏆 Algorithm Hero',n===SIMS.length],['🧠 Quiz whiz',st.quiz.length>=8]];
+  $('badges').innerHTML=B.map(b=>`<span class="bd${b[1]?' on':''}">${b[0]}</span>`).join('');
+}
+function renderTrail(){
+  const next=SIMS.findIndex(s=>!st.learned.includes(s.id));
+  $('trail').innerHTML=SIMS.map((s,i)=>`<button class="stop${st.learned.includes(s.id)?' done':''}${i===next?' next':''}" onclick="jump('${s.id}')" aria-label="${s.title}">${i===next?'<span class="here">Start here</span>':''}<span class="dot">${s.icon}</span><small>${i+1}. ${s.title.split(' · ')[0]}</small></button>`).join('');
+  $('tprog').textContent=next<0?'🎉 You finished the whole trail! You are an Algorithm Hero.':`${st.learned.length} of ${SIMS.length} stops completed`;
+}
+function renderGrid(){
+  const q=query.toLowerCase(),list=SIMS.filter(s=>(filter==='all'||s.cats.includes(filter))&&(!q||(s.title+s.desc+s.learn.join(' ')+s.cats.map(c=>CATS[c]).join(' ')).toLowerCase().includes(q)));
+  $('grid').innerHTML=list.length?list.map(s=>{const on=st.learned.includes(s.id);return `<article class="sim" id="s-${s.id}">
+   <div class="pv ${s.pv}" aria-hidden="true">${preview(s.pv)}</div>
+   <div class="meta"><span class="tag ${s.lvl}">${s.lvl}</span>${s.cats.map(c=>`<span class="tag">${CATS[c]}</span>`).join('')}</div>
+   <h3>${s.icon} ${s.title}</h3><p>${s.desc}</p>
+   <ul>${s.learn.map(l=>`<li>${l}</li>`).join('')}</ul><div class="cx">⏱ ${s.cx}</div>
+   <div class="acts"><a class="btn" href="${s.file}">▶ Open simulator</a><button class="learn" aria-pressed="${on}" onclick="toggleLearn('${s.id}')">${on?'⭐ Learned':'☐ Mark as learned'}</button></div></article>`}).join(''):'<p class="sub">No simulator matches your search. Try “sort” or “stack”.</p>';
+}
+function renderFilters(){$('filters').innerHTML=Object.entries(CATS).map(([k,v])=>`<button class="${k===filter?'on':''}" onclick="setFilter('${k}')">${v}</button>`).join('')}
+function setFilter(k){filter=k;renderFilters();renderGrid()}
+function toggleLearn(id){const i=st.learned.indexOf(id);i<0?st.learned.push(id):st.learned.splice(i,1);save();renderAll()}
+function jump(id){filter='all';query='';$('q').value='';renderFilters();renderGrid();const e=$('s-'+id);e.scrollIntoView({behavior:'smooth',block:'center'});e.classList.add('flash');setTimeout(()=>e.classList.remove('flash'),1300)}
+
+function nextQ(){
+  const all=QZ.map((_,i)=>i),pool=all.filter(i=>!st.quiz.includes(i)),src=pool.length?pool:all;let k;
+  do{k=src[Math.floor(Math.random()*src.length)]}while(src.length>1&&k===qi);
+  qi=k;answered=false;renderQuiz();
+}
+function renderQuiz(){
+  const q=QZ[qi],s=SIMS.find(x=>x.id===q[0]);
+  $('quiz').innerHTML=`<span class="tag">${s.icon} From: ${s.title.split(' · ')[0]}</span><div class="q">${q[1]}</div>
+   <div class="opts">${q[2].map((o,i)=>`<button onclick="ans(${i})">${o}</button>`).join('')}</div>
+   <div class="exp" id="exp"></div>
+   <div class="qrow"><button class="btn" onclick="nextQ()">Next question ➜</button><a class="sec btn" href="${s.file}">Review in simulator</a><span class="xpnote">${st.quiz.length} of ${QZ.length} answered correctly</span></div>`;
+}
+function ans(i){
+  if(answered)return;answered=true;
+  const q=QZ[qi],ok=i===q[3],b=document.querySelectorAll('.opts button');
+  b.forEach((el,k)=>{if(k===q[3])el.classList.add('ok');else if(k===i)el.classList.add('no')});
+  const first=ok&&!st.quiz.includes(qi);if(first){st.quiz.push(qi);save()}
+  const e=$('exp');e.style.display='block';e.textContent=(ok?(first?'✅ Correct! +5 XP. ':'✅ Correct! '):'❌ Not quite. ')+q[4];
+  renderStats();
+}
+function renderAll(){renderStats();renderTrail();renderGrid()}
+
+$('q').addEventListener('input',e=>{query=e.target.value.trim();renderGrid()});
+$('surprise').onclick=()=>{location.href=SIMS[Math.floor(Math.random()*SIMS.length)].file};
+$('reset').onclick=()=>{if(confirm('Reset stars, XP and quiz progress in this browser?')){st={learned:[],quiz:[]};save();renderAll();nextQ()}};
+$('themeBtn').onclick=()=>{
+  const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+  r.dataset.theme=dark?'light':'dark';$('themeBtn').textContent=dark?'🌙':'☀️';
+  try{localStorage.setItem('algoPlayground.theme',r.dataset.theme)}catch(e){}
+};
+try{const t=localStorage.getItem('algoPlayground.theme');if(t){document.documentElement.dataset.theme=t;$('themeBtn').textContent=t==='dark'?'☀️':'🌙'}}catch(e){}
+renderFilters();renderAll();nextQ();
+</script>
+</body>
+</html>

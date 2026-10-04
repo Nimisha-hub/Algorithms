@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Binary Search – Penguin Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f4fb;--card:#fff;--ink:#2e2a4a;--muted:#7a7799;--line:#e6e2f3;
+  --lav:#e9e3fb;--lav-d:#8b79d9;--pink:#ffe3e8;--pink-d:#e5667e;
+  --sky:#dcecff;--sky-d:#5b9bea;--mint:#d9f5e6;--mint-d:#3fb37a;--sun:#fff1d6;--sun-d:#e0a23a;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1f1c2e;--card:#2a2640;--ink:#efecff;--muted:#a8a3c9;--line:#3b3659;--lav:#3a3360}}
+:root[data-theme="dark"]{--bg:#1f1c2e;--card:#2a2640;--ink:#efecff;--muted:#a8a3c9;--line:#3b3659;--lav:#3a3360}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;margin-top:14px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input{padding:12px 15px;border:2px solid var(--line);border-radius:14px;font:inherit;font-size:16px;background:var(--bg);color:var(--ink);outline:none}
+input:focus{border-color:var(--lav-d)}
+#arr{flex:1;min-width:240px}#tgt{width:110px}
+select{padding:12px;border:2px solid var(--line);border-radius:14px;font:inherit;font-weight:700;background:var(--bg);color:var(--ink)}
+button{border:0;border-radius:14px;padding:12px 18px;font:inherit;font-weight:800;cursor:pointer;background:var(--lav-d);color:#fff;transition:transform .12s,filter .2s}
+button:hover:not(:disabled){filter:brightness(1.06)}button:active:not(:disabled){transform:scale(.96)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sky-d);outline-offset:2px}
+button.sec{background:var(--lav);color:var(--lav-d)}button.go{background:var(--mint-d)}
+button:disabled{opacity:.4;cursor:not-allowed}
+
+/* scene */
+.scene{position:relative;border-radius:26px;overflow:hidden;height:360px;background:linear-gradient(#cfc4ee 0%,#e6dcf6 55%,#f4e7f1 100%)}
+.scene>svg{position:absolute;inset:0;width:100%;height:100%}
+.title{position:absolute;top:14px;left:0;right:0;text-align:center}
+.title b{display:inline-block;background:#fff3b8;color:#6b5400;border-radius:99px;padding:3px 18px;font-size:clamp(20px,4.5vw,28px);font-weight:800}
+.title span{display:block;font-size:13px;font-weight:700;color:#5d5580;margin-top:2px}
+.ice{position:absolute;left:3%;right:3%;bottom:22px;height:62px;background:linear-gradient(#f4fbff,#cfe6f7);border-radius:26px;box-shadow:0 8px 0 #b8d4ea}
+.row{position:absolute;left:3%;right:3%;bottom:54px;display:flex;justify-content:center;align-items:flex-end;gap:clamp(2px,.8vw,8px)}
+.slot{--pw:clamp(26px,4.6vw,48px);width:var(--pw);text-align:center;position:relative}
+.p{width:100%;transition:opacity .4s,filter .4s,transform .4s}
+.p svg{display:block;width:100%;height:auto;overflow:visible}
+.slot.out::before{content:"💤";position:absolute;top:-10px;right:-2px;font-size:14px;z-index:2}
+.slot.out .p{opacity:.3;filter:saturate(.2);transform:translateY(5px) scale(.92)}
+.slot.mid .p{animation:hop 1.4s ease-in-out infinite}
+.slot.mid .body{fill:#7a4a86}
+.slot.found .p{animation:cheer .9s ease-in-out infinite}
+.slot.found .body{fill:#b8861f}
+.slot.found .p{filter:drop-shadow(0 0 10px #ffd966)}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+@keyframes cheer{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-26px) rotate(4deg)}}
+.head{transform-box:view-box;transform-origin:30px 30px}
+@keyframes nod{0%,100%{transform:translateY(0) rotate(0)}35%{transform:translateY(5px) rotate(10deg)}70%{transform:translateY(-1px) rotate(-3deg)}}
+@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-16deg)}75%{transform:rotate(16deg)}}
+.slot.nod .head,.seeker.nod .head{animation:nod .9s ease-in-out 3}
+.slot.shake .head,.seeker.shake .head{animation:shake .8s ease-in-out 3}
+.seeker{position:absolute;left:12px;top:72px;width:clamp(48px,9vw,64px);text-align:center;display:none}
+.seeker .p{width:100%}.seeker svg{display:block;width:100%;height:auto}
+.seeker.cheer .p{animation:cheer .9s ease-in-out infinite}
+.seeker .tag{margin-top:4px;display:inline-block;background:#fff3b8;color:#6b5400;font-size:11px;font-weight:800;border-radius:99px;padding:0 8px;white-space:nowrap}
+.bubble{position:absolute;display:none;background:#fff;color:#2e2a4a;font-weight:800;font-size:14px;line-height:1.3;border-radius:14px;padding:6px 11px;max-width:210px;text-align:center;box-shadow:0 4px 12px rgba(80,60,140,.2);pointer-events:none;z-index:3}
+.bubble::after{content:"";position:absolute;top:100%;left:var(--tx,50%);margin-left:-6px;border:6px solid transparent;border-top-color:#fff}
+#sb{left:calc(clamp(48px,9vw,64px) + 26px);top:80px}
+#sb::after{top:12px;left:-12px;margin:0;border-top-color:transparent;border-right-color:#fff}
+.flags{position:absolute;left:0;right:0;top:calc(100% + 8px);display:flex;justify-content:center;gap:2px;min-height:20px}
+.flag{font-size:11px;font-weight:800;border-radius:99px;padding:0 6px;color:#2e2a4a}
+.f-lo{background:var(--sky)}.f-mid{background:var(--pink)}.f-hi{background:var(--mint)}
+.idx{position:absolute;left:0;right:0;top:calc(100% + 28px);font-size:11px;font-weight:700;color:#8c88ac}
+
+.status{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.stat{border-radius:16px;padding:10px;text-align:center;color:var(--muted);font-weight:700;font-size:14px;color:#6a6690}
+.stat b{display:block;font-size:24px;color:#2e2a4a;font-weight:800}
+.stat:nth-child(1){background:var(--sky)}.stat:nth-child(2){background:var(--pink)}.stat:nth-child(3){background:var(--mint)}.stat:nth-child(4){background:var(--sun)}.stat:nth-child(5){background:var(--lav)}
+.message{text-align:center;margin-top:14px;font-size:19px;font-weight:800;line-height:1.4;padding:12px 18px;border-radius:20px;background:var(--lav);min-height:96px;display:flex;align-items:center;justify-content:center}
+.legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:12px;color:var(--muted);font-size:13px;font-weight:700}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:5px;vertical-align:-1px}
+
+.cols{display:block}
+.cols h2{margin:0 0 10px;font-size:19px}
+.cols p{margin:8px 0;color:var(--muted)}.cols p b{color:var(--ink)}
+.code{background:#2f2b4d;color:#e6e1fb;border-radius:16px;padding:12px 0;font-family:Consolas,'SFMono-Regular',monospace;font-size:14px;overflow-x:auto}
+.ln{white-space:pre;padding:1px 16px;border-left:4px solid transparent;transition:background .25s}
+.ln.on{background:#4b4577;border-left-color:#ffd966}
+.k{color:#ff9fc0}.n{color:#ffcf8a}
+.stage{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,1fr);gap:18px;align-items:start}
+.left{min-width:0}.status{margin-top:10px}
+.right{position:sticky;top:12px;min-width:0}
+.right h2{margin:0 0 10px;font-size:19px}
+@media(max-width:800px){.stage{grid-template-columns:1fr}.left{display:contents}.scene{order:1}.message{order:2;margin-top:0}.right{order:3;position:static}.status{order:4;margin-top:0}.legend{order:5}.slot{--pw:clamp(30px,7.4vw,56px)}}
+@media(max-width:700px){.cols{grid-template-columns:1fr}.status{grid-template-columns:repeat(3,1fr)}.scene{height:320px}#arr{min-width:100%}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<a href="../index.html" style="position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:9999;background:#fff;color:#5a4bb0;border:2px solid #e6e2f3;border-radius:99px;padding:8px 14px;font:700 14px system-ui,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.18)">← All simulators</a>
+<div class="wrap">
+<section class="panel">
+  <div class="controls">
+    <input id="arr" value="3, 8, 14, 21, 29, 35, 42, 50, 58" aria-label="Sorted numbers">
+    <input id="tgt" type="number" value="35" aria-label="Number to find">
+    <button onclick="start()">Start</button>
+    <button class="sec" id="back" onclick="step(-1)" disabled>◀ Back</button>
+    <button class="sec" id="next" onclick="step(1)" disabled>Next step</button>
+    <button class="go" id="auto" onclick="autoRun()" disabled>▶ Auto play</button>
+    <select id="spd" onchange="if(playing)setPlay(true)" aria-label="Auto play speed"><option value="9000">Very slow</option><option value="6000" selected>Slow</option><option value="3500">Normal</option></select>
+    <button class="sec" onclick="resetAll()">Reset</button>
+  </div>
+</section>
+
+<section class="panel stage">
+  <div class="left">
+  <div class="scene">
+    <svg viewBox="0 0 800 360" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <path d="M0 230 Q200 170 400 215 T800 200 V360 H0Z" fill="#d9cdf0"/>
+      <path d="M0 270 Q250 220 500 262 T800 250 V360 H0Z" fill="#f3ecfb"/>
+      <g fill="#8e7fc0"><path d="M50 215 l28 -70 l28 70z"/><path d="M95 225 l22 -55 l22 55z"/><path d="M690 205 l30 -75 l30 75z"/><path d="M735 220 l22 -55 l22 55z"/></g>
+      <g fill="#7569a8"><rect x="74" y="213" width="8" height="12"/><rect x="714" y="203" width="8" height="12"/></g>
+      <g><path d="M205 250 a75 70 0 0 1 150 0z" fill="#fbfdff"/><path d="M215 230 h130 M225 210 h110 M245 192 h70" stroke="#d8e4f0" stroke-width="3" fill="none"/><path d="M262 250 v-22 a18 18 0 0 1 36 0 v22z" fill="#8d7fbd"/></g>
+      <g><circle cx="700" cy="262" r="26" fill="#fff"/><circle cx="700" cy="226" r="18" fill="#fff"/><path d="M684 232 h32 v6 h-32z" fill="#ff9fb0"/><circle cx="695" cy="222" r="2" fill="#2e2a4a"/><circle cx="705" cy="222" r="2" fill="#2e2a4a"/></g>
+    </svg>
+    <div class="title"><b>Binary Search</b></div>
+    <div class="ice"></div>
+    <div class="row" id="row"></div>
+    <div class="seeker" id="seeker"></div><div class="bubble" id="sb"></div><div class="bubble" id="mb"></div>
+  </div>
+  <div class="status">
+    <div class="stat">lo<b id="slo">—</b></div>
+    <div class="stat">mid<b id="smid">—</b></div>
+    <div class="stat">hi<b id="shi">—</b></div>
+    <div class="stat">Questions<b id="scmp">0</b></div>
+    <div class="stat">Round<b id="srnd">—</b></div>
+  </div>
+  <div class="message" id="msg" aria-live="polite">Enter a sorted list and a number to find, then click Start.</div>
+  <div class="legend">
+    <span><i style="background:var(--sky)"></i>lo (left end)</span>
+    <span><i style="background:var(--pink)"></i>mid (checked)</span>
+    <span><i style="background:var(--mint)"></i>hi (right end)</span>
+    <span><i style="background:#ffd966"></i>Found</span>
+    <span><i style="background:#ddd;"></i>Ruled out</span>
+  </div>
+  </div>
+  <div class="right"><h2>Code</h2><div class="code" id="code"></div></div>
+</section>
+
+<section class="panel cols">
+  <div>
+    <h2>How it works</h2>
+    <p><b>1. Look in the middle:</b> pick the middle penguin of the range between lo and hi.</p>
+    <p><b>2. Compare:</b> if it matches, you're done. If it's too small, the target must be to the right.</p>
+    <p><b>3. Drop half:</b> move lo or hi past mid, so half of the penguins are ruled out in one go.</p>
+    <p><b>4. Repeat</b> until you find it, or lo passes hi, meaning it isn't there.</p>
+    <p>The list must be sorted. Each step halves the range, so it takes about log₂(n) steps.</p>
+  </div>
+</section>
+</div>
+
+<script>
+const KEYS=['#ff9fb0','#8fc7ff','#9be3bd','#ffd48a','#c9b6ff'];
+let v=[],x=0,S=[],si=-1,timer=null;
+
+function build(v,x){
+  const out=[];let lo=0,hi=v.length-1,cmp=0,round=0;
+  const P=(line,msg,e={})=>out.push({line,lo,hi,mid:null,cmp,round,msg,...e});
+  const pl=n=>n===1?'':'s';
+  P(0,`Meet the penguins! They stand in a line from the smallest number to the biggest number. This list is called v.`,{intro:true,ss:'Hi everyone!'});
+  P(1,`The crown penguin is looking for the number ${x}. We call this number x. We want to find it without asking every penguin!`,{intro:true,ss:`I'm looking for ${x}!`,sa:'nod'});
+  P(2,`lo is the left end of the line (index 0). hi is the right end (index ${hi}). At the start, all ${v.length} penguins are still in the game.`);
+  while(true){
+    if(lo>hi){
+      P(3,`lo (${lo}) has gone past hi (${hi}). That means no penguins are left in the game.`,{ss:'Nobody left to ask…',sa:'shake'});
+      P(12,`The loop is finished and we never found ${x}. So the else part runs.`,{ss:'Hmm…',sa:'shake'});
+      P(13,`${x} is not in the list, so we print -1. It means "not found".`,{end:'miss',ss:`${x} isn't here 😢`,sa:'shake'});break}
+    round++;
+    P(3,`Round ${round}: lo (${lo}) is not past hi (${hi}). Penguins still in the game: ${v.slice(lo,hi+1).join(', ')}. Let's keep searching!`);
+    const mid=(lo+hi)>>1,m=v[mid],sum=lo+hi;
+    P(4,`Find the middle: lo + hi = ${lo} + ${hi} = ${sum}. Divide by 2: ${sum} ÷ 2 = ${sum/2}${sum%2?' (we ignore the .5)':''}. So mid = ${mid}.`);
+    P(4,`Penguin number ${mid} (wearing ${m}) steps forward. It is our middle penguin.`,{mid,ms:`Hi! I'm ${m}, the middle one.`,ss:`Hello ${m}!`});
+    cmp++;
+    P(5,`Question ${cmp}: is ${m} the same as ${x}?`,{mid,ms:`Am I ${x}? Let me check…`,ss:'Hmm…'});
+    if(m===x){
+      P(6,`Yes! ${m} is the same as ${x}. The seeker found its friend at index ${mid}!`,{mid,end:'hit',ms:`Yes, I'm ${x}! 🎉`,ma:'nod',ss:'Found you! 🎉',sa:'cheer'});
+      P(7,`break means stop searching. We found ${x} after ${round} round${pl(round)} and ${cmp} question${pl(cmp)}. Checking one by one could have taken up to ${v.length} checks!`,{mid,end:'hit',ms:`Found in ${round} round${pl(round)}!`,ss:'We did it! 🎉',sa:'cheer'});break}
+    P(5,`${m} is not the same as ${x}. So this is not our penguin. We need a hint!`,{mid,ms:`No, I'm ${m}, not ${x}.`,ma:'shake',ss:'Oh no… give me a hint!'});
+    cmp++;
+    P(8,`Question ${cmp}: is ${m} smaller than ${x}?`,{mid,ms:`Am I smaller than ${x}?`});
+    if(m<x){
+      P(8,`Yes! ${m} is smaller than ${x}. All penguins to its left are even smaller, so ${x} must be on the right side.`,{mid,ms:`I'm smaller than ${x}, so go right.`,ma:'shake',ss:'Right side it is!'});
+      const gone=v.slice(lo,mid+1);lo=mid+1;
+      P(9,`Move lo to mid + 1 = ${lo}. Penguin${pl(gone.length)} ${gone.join(', ')} ${gone.length>1?'are':'is'} too small, so ${gone.length>1?'they go':'it goes'} to sleep 💤. About half the line is gone in one move!`,{mid,ms:'Look to my right ▶',ma:'nod',ss:'Okay, going right ▶',sa:'nod'});
+    }else{
+      P(8,`No. ${m} is bigger than ${x}. All penguins to its right are even bigger, so ${x} must be on the left side.`,{mid,ms:`I'm bigger than ${x}, so go left.`,ma:'shake',ss:'Left side it is!'});
+      P(10,`So the else part runs: the middle penguin is too big.`,{mid});
+      const gone=v.slice(mid,hi+1);hi=mid-1;
+      P(11,`Move hi to mid - 1 = ${hi}. Penguin${pl(gone.length)} ${gone.join(', ')} ${gone.length>1?'are':'is'} too big, so ${gone.length>1?'they go':'it goes'} to sleep 💤. About half the line is gone in one move!`,{mid,ms:'Look to my left ◀',ma:'nod',ss:'Okay, going left ◀',sa:'nod'});
+    }
+  }
+  return out;
+}
+
+function penguin(val,i,crown){
+  const c=KEYS[i%KEYS.length];
+  return `<svg viewBox="0 0 60 80"><ellipse cx="21" cy="76" rx="8" ry="3.5" fill="#ff9f43"/><ellipse cx="39" cy="76" rx="8" ry="3.5" fill="#ff9f43"/>
+  <ellipse class="body" cx="30" cy="42" rx="22" ry="32" fill="#3b3556"/><ellipse cx="8" cy="46" rx="5" ry="14" transform="rotate(-12 8 46)" fill="#3b3556"/><ellipse cx="52" cy="46" rx="5" ry="14" transform="rotate(12 52 46)" fill="#3b3556"/>
+  <ellipse cx="30" cy="50" rx="15" ry="23" fill="#fff"/><g class="head">${crown?'<path d="M17 3 l5 9 l8 -11 l8 11 l5 -9 v13 h-26z" fill="#ffd966"/>':''}<circle cx="23" cy="22" r="3.4" fill="#fff"/><circle cx="37" cy="22" r="3.4" fill="#fff"/><circle cx="23" cy="22.5" r="1.6" fill="#2e2a4a"/><circle cx="37" cy="22.5" r="1.6" fill="#2e2a4a"/>
+  <path d="M26 28 h8 l-4 6z" fill="#ff9f43"/></g><rect x="10" y="34" width="40" height="6" rx="3" fill="${c}"/>
+  <text x="30" y="62" text-anchor="middle" font-size="17" font-weight="800" font-family="Nunito,Arial,sans-serif" fill="#2e2a4a">${val}</text></svg>`;
+}
+
+function render(){
+  const s=S[si]||{lo:0,hi:-1,mid:null};
+  const row=document.getElementById('row');row.innerHTML='';
+  v.forEach((val,i)=>{
+    const d=document.createElement('div');d.className='slot';
+    const inR=s.lo<=i&&i<=s.hi;
+    if(!inR)d.classList.add('out');
+    if(s.mid===i){d.classList.remove('out');d.classList.add(s.end==='hit'?'found':'mid');if(s.ma)d.classList.add(s.ma)}
+    const fl=[];
+    if(si>=0&&!s.intro&&s.end!=='miss'){if(i===s.lo)fl.push('<span class="flag f-lo">lo</span>');if(s.mid===i)fl.push('<span class="flag f-mid">mid</span>');if(i===s.hi)fl.push('<span class="flag f-hi">hi</span>')}
+    d.innerHTML=`<div class="p">${penguin(val,i)}</div><div class="flags">${fl.join('')}</div><div class="idx">${i}</div>`;
+    row.appendChild(d);
+  });
+  const sc=document.querySelector('.scene'),mb=document.getElementById('mb'),sb=document.getElementById('sb'),sk=document.getElementById('seeker');
+  const m=row.querySelector('.slot.mid,.slot.found');
+  if(m&&s.ms){mb.textContent=s.ms;mb.style.display='block';const r=m.getBoundingClientRect(),c=sc.getBoundingClientRect(),w=mb.offsetWidth,cx=r.left-c.left+r.width/2,l=Math.min(Math.max(cx-w/2,6),c.width-w-6);mb.style.left=l+'px';mb.style.bottom=(c.bottom-r.top+22)+'px';mb.style.setProperty('--tx',(cx-l)+'px')}else mb.style.display='none';
+  sk.style.display=si>=0?'block':'none';sk.className='seeker '+(s.sa||'');
+  if(si>=0&&s.ss){sb.textContent=s.ss;sb.style.display='block'}else sb.style.display='none';
+  const hi=s.end==='miss'?'—':s.hi;
+  document.getElementById('slo').textContent=si>=0&&!s.intro&&s.end!=='miss'?s.lo:'—';
+  document.getElementById('smid').textContent=s.mid!==null?s.mid:'—';
+  document.getElementById('shi').textContent=si>=0&&!s.intro?hi:'—';
+  document.getElementById('scmp').textContent=s.cmp||0;document.getElementById('srnd').textContent=s.round||'—';
+  const L=document.querySelectorAll('.ln');L.forEach((e,i)=>e.classList.toggle('on',si>=0&&i===s.line));
+  const last=si>=S.length-1;
+  document.getElementById('next').disabled=!S.length||last;
+  document.getElementById('auto').disabled=!S.length||last;
+  document.getElementById('back').disabled=si<=0;
+}
+
+function codeLines(){
+  const t=[`v = [${v.join(', ')}]`,`x = ${x}`,'lo, hi = 0, len(v) - 1','while lo <= hi:','    mid = (lo + hi) // 2','    if v[mid] == x:','        print(mid)','        break','    elif v[mid] < x:','        lo = mid + 1','    else:','        hi = mid - 1','else:','    print(-1)'];
+  document.getElementById('code').innerHTML=t.map(l=>{
+    const h=l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\b(while|if|elif|else|break|print|len)\b/g,'<span class="k">$1</span>').replace(/(\b\d+\b)/g,'<span class="n">$1</span>');
+    return `<div class="ln">${h}</div>`}).join('');
+}
+
+function start(){
+  setPlay(false);
+  let vals=document.getElementById('arr').value.split(',').map(s=>s.trim()).filter(s=>s!=='').map(Number).filter(Number.isFinite);
+  const t=Number(document.getElementById('tgt').value);
+  if(vals.length<2){alert('Please enter at least two numbers.');return}
+  if(vals.length>12){alert('For a clear view, use 2–12 numbers.');return}
+  if(document.getElementById('tgt').value===''||!Number.isFinite(t)){alert('Enter the number to find.');return}
+  const sorted=vals.slice().sort((a,b)=>a-b);
+  const wasSorted=sorted.every((n,i)=>n===vals[i]);
+  v=sorted;x=t;
+  document.getElementById('arr').value=v.join(', ');
+  S=build(v,x);si=-1;codeLines();document.getElementById('seeker').innerHTML=`<div class="p">${penguin(x,3,true)}</div><span class="tag">finding ${x}</span>`;step(1);
+  if(!wasSorted)document.getElementById('msg').textContent='Binary search needs a sorted list, so the penguins lined up in order first. '+S[0].msg;
+}
+function step(d){
+  const n=si+d;if(n<0||n>=S.length)return;
+  si=n;document.getElementById('msg').textContent=S[si].msg;render();if(playing&&si>=S.length-1)setPlay(false);
+}
+let playing=false;
+function setPlay(on){
+  playing=on;clearInterval(timer);
+  document.getElementById('auto').textContent=on?'⏸ Pause':'▶ Auto play';
+  if(on)timer=setInterval(()=>{if(si>=S.length-1){setPlay(false);return}step(1)},+document.getElementById('spd').value);
+}
+function autoRun(){setPlay(!playing)}
+function resetAll(){
+  setPlay(false);S=[];si=-1;v=[];document.getElementById('srnd').textContent='—';
+  document.getElementById('row').innerHTML='';document.getElementById('code').innerHTML='';['mb','sb','seeker'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('msg').textContent='Enter a sorted list and a number to find, then click Start.';
+  ['slo','smid','shi'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('scmp').textContent=0;
+  ['next','auto','back'].forEach(id=>document.getElementById(id).disabled=true);
+}
+start();
+</script>
+</body>
+</html>
